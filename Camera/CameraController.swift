@@ -123,7 +123,8 @@ class CameraController: NSObject {
 		session.sessionPreset = AVCaptureSessionPresetPhoto
 		
 		if previewType == .PreviewLayer {
-			previewLayer = AVCaptureVideoPreviewLayer.layerWithSession(self.session) as AVCaptureVideoPreviewLayer
+            previewLayer = AVCaptureVideoPreviewLayer(session: self.session)
+//			previewLayer = AVCaptureVideoPreviewLayer.layerWithSession(self.session) as AVCaptureVideoPreviewLayer
 		}
 
 		let authorizationStatus = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)
@@ -181,7 +182,7 @@ class CameraController: NSObject {
 		var indexes = [Int]()
 		if let propertyObservers = controlObservers[property] {
 			let filteredPropertyObservers = propertyObservers.filter({ (obs) -> Bool in
-				obs as NSObject != observer
+				obs as! NSObject != observer
 			})
 			controlObservers[property] = filteredPropertyObservers
 		}
@@ -260,7 +261,7 @@ class CameraController: NSObject {
 	
 	func setCustomExposureWithISO(iso:Float) {
 		performConfigurationOnCurrentCameraDevice { (currentDevice) -> Void in
-			currentDevice.setExposureModeCustomWithDuration(AVCaptureExposureDurationCurrent, ISO: iso, nil)
+			currentDevice.setExposureModeCustomWithDuration(AVCaptureExposureDurationCurrent, ISO: iso, completionHandler: nil)
 		}
 	}
 	
@@ -271,8 +272,8 @@ class CameraController: NSObject {
 			let finalDuration = CMTimeMakeWithSeconds(Float64(duration), 1_000_000)
 			let durationRange = CMTimeRangeFromTimeToTime(activeFormat.minExposureDuration, activeFormat.maxExposureDuration)
 
-			if CMTimeRangeContainsTime(durationRange, finalDuration) != 0 {
-				currentDevice.setExposureModeCustomWithDuration(finalDuration, ISO: AVCaptureISOCurrent, nil)
+			if CMTimeRangeContainsTime(durationRange, finalDuration)  {
+				currentDevice.setExposureModeCustomWithDuration(finalDuration, ISO: AVCaptureISOCurrent, completionHandler: nil)
 			}
 		}
 	}
@@ -407,8 +408,9 @@ class CameraController: NSObject {
 				
 				if error == nil {
 					let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageDataSampleBuffer)
-
-					let metadata:NSDictionary = CMCopyDictionaryOfAttachments(nil, imageDataSampleBuffer, CMAttachmentMode(kCMAttachmentMode_ShouldPropagate)).takeUnretainedValue()
+                    
+                    let metadata:NSDictionary = CMCopyDictionaryOfAttachments(nil, imageDataSampleBuffer, kCMAttachmentMode_ShouldNotPropagate)!
+//					let metadata:NSDictionary = CMCopyDictionaryOfAttachments(nil, imageDataSampleBuffer, CMAttachmentMode(kCMAttachmentMode_ShouldPropagate)).takeUnretainedValue()
 
 					if let image = UIImage(data: imageData) {
 						dispatch_async(dispatch_get_main_queue()) { () -> Void in
@@ -444,7 +446,8 @@ class CameraController: NSObject {
 				if error == nil {
 					let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(sampleBuffer)
 					
-					let metadata:NSDictionary = CMCopyDictionaryOfAttachments(nil, sampleBuffer, CMAttachmentMode(kCMAttachmentMode_ShouldPropagate)).takeUnretainedValue()
+					let metadata:NSDictionary = CMCopyDictionaryOfAttachments(nil, sampleBuffer, kCMAttachmentMode_ShouldNotPropagate)!
+                        
 					
 					if let image = UIImage(data: imageData) {
 						dispatch_async(dispatch_get_main_queue()) { () -> Void in
@@ -465,10 +468,10 @@ class CameraController: NSObject {
 	func subjectAreaDidChange(notification:NSNotification) {
 	}
 	
-	
-	override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>) {
+    
+	override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
 		var key = ""
-		var newValue: AnyObject = change[NSKeyValueChangeNewKey]!
+		var newValue: AnyObject = change![NSKeyValueChangeNewKey]!
 		
 		switch context {
 		case &lensPositionContext:
@@ -512,7 +515,7 @@ extension CameraController: AVCaptureMetadataOutputObjectsDelegate, AVCaptureVid
 	func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
 		
 		let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-		let image = CIImage(CVPixelBuffer: pixelBuffer)
+		let image = CIImage(CVPixelBuffer: pixelBuffer!)
 		
 //		self.delegate?.cameraController?(self, didOutputImage: image)
 	}
@@ -522,7 +525,7 @@ extension CameraController: AVCaptureMetadataOutputObjectsDelegate, AVCaptureVid
 		
 		var faces = Array<(id:Int,frame:CGRect)>()
 		
-		for metadataObject in metadataObjects as [AVMetadataObject] {
+		for metadataObject in metadataObjects as! [AVMetadataObject] {
 			if metadataObject.type == AVMetadataObjectTypeFace {
 				if let faceObject = metadataObject as? AVMetadataFaceObject {
 					var transformedMetadataObject = previewLayer.transformedMetadataObjectForMetadataObject(metadataObject)
@@ -556,11 +559,21 @@ private extension CameraController {
 	func performConfigurationOnCurrentCameraDevice(block: ((currentDevice:AVCaptureDevice) -> Void)) {
 		if let currentDevice = self.currentCameraDevice {
 			performConfiguration { () -> Void in
-				var error:NSError?
-				if currentDevice.lockForConfiguration(&error) {
-					block(currentDevice: currentDevice)
-					currentDevice.unlockForConfiguration()
-				}
+				//var error:NSError?
+                
+                do{
+                    try! currentDevice.lockForConfiguration()
+                    block(currentDevice: currentDevice)
+                    currentDevice.unlockForConfiguration()
+                }
+                catch {
+                    print("Something went wrong")
+                }
+
+//				if currentDevice.lockForConfiguration(error) {
+//					block(currentDevice: currentDevice)
+//					currentDevice.unlockForConfiguration()
+//				}
 			}
 		}
 	}
@@ -582,7 +595,7 @@ private extension CameraController {
 		performConfiguration { () -> Void in
 			
 			let availableCameraDevices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo)
-			for device in availableCameraDevices as [AVCaptureDevice] {
+			for device in availableCameraDevices as! [AVCaptureDevice] {
 				if device.position == .Back {
 					self.backCameraDevice = device
 				}
@@ -595,14 +608,18 @@ private extension CameraController {
 			// let's set the back camera as the initial device
 			
 			self.currentCameraDevice = self.backCameraDevice
-			var error:NSError?
-			
-			let possibleCameraInput: AnyObject? = AVCaptureDeviceInput.deviceInputWithDevice(self.currentCameraDevice, error: &error)
-			if let backCameraInput = possibleCameraInput as? AVCaptureDeviceInput {
-				if self.session.canAddInput(backCameraInput) {
-					self.session.addInput(backCameraInput)
-				}
-			}
+//			var error:NSError?
+            do{
+                let possibleCameraInput: AnyObject? = try AVCaptureDeviceInput.init(device: self.backCameraDevice)
+                if let backCameraInput = possibleCameraInput as? AVCaptureDeviceInput {
+                    if self.session.canAddInput(backCameraInput) {
+                        self.session.addInput(backCameraInput)
+                    }
+                }
+            }
+            catch let error as NSError{
+                print (error.description)
+            }
 		}
 	}
 	
@@ -641,10 +658,13 @@ private extension CameraController {
 			if self.session.canAddOutput(self.metadataOutput) {
 				self.session.addOutput(self.metadataOutput)
 			}
-			
-			if contains(self.metadataOutput.availableMetadataObjectTypes as [NSString], AVMetadataObjectTypeFace) {
-				self.metadataOutput.metadataObjectTypes = [AVMetadataObjectTypeFace]
-			}
+            let StringArray = self.metadataOutput.availableMetadataObjectTypes as! [NSString]!
+            
+            if StringArray.contains(AVMetadataObjectTypeFace)
+            {
+                self.metadataOutput.metadataObjectTypes = [AVMetadataObjectTypeFace]
+            }
+            
 		}
 	}
 	

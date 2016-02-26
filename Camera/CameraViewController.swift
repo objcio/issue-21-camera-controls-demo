@@ -115,7 +115,7 @@ class CameraViewController : UIViewController, CameraControllerDelegate, CameraS
 			}
 			
 			controlsView.hidden = false
-			self.performSegueWithIdentifier(segueIdentifier, sender: self)
+			self.performSegueWithIdentifier(String.init(segueIdentifier), sender: self)
 		}
 	}
 	
@@ -171,8 +171,8 @@ class CameraViewController : UIViewController, CameraControllerDelegate, CameraS
 	func cameraController(cameraController: CameraController, didDetectFaces faces: Array<(id: Int, frame: CGRect)>) {
 
 		prepareFaceViews(faces.count - faceViews.count)
-
-		for (idx, face) in enumerate(faces) {
+        
+		for (idx, face) in faces.enumerate() {
 			faceViews[idx].frame = face.frame
 		}
 	}
@@ -229,8 +229,9 @@ private extension CameraViewController {
 		if let tint = cameraController.currentTint() {
 			currentValuesTextComponents.append(String(format: "TINT: %.0f", tint))
 		}
+        
+        currentValuesTextComponents.joinWithSeparator(" - ")
 
-		currentValuesLabel.text = join(" - ", currentValuesTextComponents)
 	}
 	
 }

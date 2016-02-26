@@ -22,7 +22,7 @@ class GLViewController: UIViewController {
 	
 	private var glView:GLKView {
 		get {
-			return view as GLKView
+			return view as! GLKView
 		}
 	}
 
@@ -33,14 +33,14 @@ class GLViewController: UIViewController {
 		glContext = EAGLContext(API: .OpenGLES2)
 		
 		
-		glView.context = glContext
+		glView.context = glContext!
 //		glView.drawableDepthFormat = .Format24
 		glView.transform = CGAffineTransformMakeRotation(CGFloat(M_PI_2))
 		if let window = glView.window {
 			glView.frame = window.bounds
 		}
 		
-		ciContext = CIContext(EAGLContext: glContext)
+		ciContext = CIContext(EAGLContext: glContext!)
 
 //		cameraController = CameraController(previewType: .Manual, delegate: self)
 	}
@@ -66,7 +66,7 @@ class GLViewController: UIViewController {
 		
 		glView.bindDrawable()
 
-		ciContext?.drawImage(image, inRect:image.extent(), fromRect: image.extent())
+		ciContext?.drawImage(image, inRect:image.extent, fromRect: image.extent)
 
 		glView.display()
 	}
