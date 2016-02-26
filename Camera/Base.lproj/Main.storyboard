@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6724" systemVersion="14C109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="vXZ-lx-hvc">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7528.3" systemVersion="14D105g" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="vXZ-lx-hvc">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6711"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7518.3"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
     </dependencies>
     <scenes>
@@ -17,7 +17,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uuk-fw-iV8" userLabel="Video Preview">
+                            <containerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uuk-fw-iV8" userLabel="Video Preview">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
@@ -33,7 +33,10 @@
                                         <include reference="UdC-nK-ks7"/>
                                     </mask>
                                 </variation>
-                            </view>
+                                <connections>
+                                    <segue destination="vCP-pP-Eof" kind="embed" identifier="Embed Preview" id="vdN-fh-SgI"/>
+                                </connections>
+                            </containerView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wNo-Gg-Rn2" userLabel="Faces">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                             </view>
@@ -1050,6 +1053,24 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="plO-UV-Jxy" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1392" y="1062.75"/>
+        </scene>
+        <!--Preview View Controller-->
+        <scene sceneID="mUL-ba-GrE">
+            <objects>
+                <viewController id="vCP-pP-Eof" userLabel="Preview View Controller" customClass="PreviewLayerViewController" customModule="Camera" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="vT8-Bm-zTq"/>
+                        <viewControllerLayoutGuide type="bottom" id="Ukf-Um-Dmf"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="0Qx-Vc-EvO">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="eAT-bo-f9u" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1392" y="189.375"/>
         </scene>
         <!--Focus View Controller-->
         <scene sceneID="xrt-GN-m6o">

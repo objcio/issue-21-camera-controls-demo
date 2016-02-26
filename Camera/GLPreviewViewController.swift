@@ -1,5 +1,6 @@
+
 //
-//  GLViewController.swift
+//  GLPreviewViewController.swift
 //  Camera
 //
 //  Created by Matteo Caldari on 28/01/15.
@@ -11,14 +12,20 @@ import GLKit
 import CoreImage
 import OpenGLES
 
-class GLViewController: UIViewController {
+class GLPreviewViewController: UIViewController, CameraPreviewViewController, CameraFramesDelegate {
 
 
-	var cameraController:CameraController!
+	var cameraController:CameraController? {
+		didSet {
+			cameraController?.framesDelegate = self
+		}
+	}
 	
 	private var glContext:EAGLContext?
 	private var ciContext:CIContext?
 	private var renderBuffer:GLuint = GLuint()
+	
+	private var filter = CIFilter(name:"CIPhotoEffectMono")
 	
 	private var glView:GLKView {
 		get {
@@ -26,38 +33,27 @@ class GLViewController: UIViewController {
 		}
 	}
 
+	override func loadView() {
+		self.view = GLKView()
+	}
 
 	override func viewDidLoad() {
         super.viewDidLoad()
 	
 		glContext = EAGLContext(API: .OpenGLES2)
 		
-		
 		glView.context = glContext!
-//		glView.drawableDepthFormat = .Format24
 		glView.transform = CGAffineTransformMakeRotation(CGFloat(M_PI_2))
 		if let window = glView.window {
 			glView.frame = window.bounds
 		}
 		
 		ciContext = CIContext(EAGLContext: glContext!)
-
-//		cameraController = CameraController(previewType: .Manual, delegate: self)
 	}
 
-	
-	override func viewDidAppear(animated: Bool) {
-		cameraController.startRunning()
-	}
-	
-	
+
 	// MARK: CameraControllerDelegate
 
-	func cameraController(cameraController: CameraController, didDetectFaces faces: NSArray) {
-		
-	}
-
-	
 	func cameraController(cameraController: CameraController, didOutputImage image: CIImage) {
 
 		if glContext != EAGLContext.currentContext() {
@@ -65,8 +61,11 @@ class GLViewController: UIViewController {
 		}
 		
 		glView.bindDrawable()
+		
+		filter!.setValue(image, forKey: "inputImage")
+		let outputImage = filter!.outputImage
 
-		ciContext?.drawImage(image, inRect:image.extent, fromRect: image.extent)
+		ciContext?.drawImage(outputImage!, inRect:image.extent, fromRect: image.extent)
 
 		glView.display()
 	}
