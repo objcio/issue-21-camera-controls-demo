@@ -83,7 +83,7 @@ class CameraViewController : UIViewController, CameraControllerDelegate, CameraS
 	}
 	
 	
-	override func shouldPerformSegueWithIdentifier(identifier: String?, sender: AnyObject?) -> Bool {
+	override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool {
 		return true
 	}
 	
@@ -97,7 +97,7 @@ class CameraViewController : UIViewController, CameraControllerDelegate, CameraS
 			controlsView.hidden = true
 		}
 		else {
-			var segueIdentifier:NSString?
+			var segueIdentifier:String = ""
 			switch sender {
 			case focusButton:
 				segueIdentifier = "Embed Focus"
@@ -130,7 +130,7 @@ class CameraViewController : UIViewController, CameraControllerDelegate, CameraS
 	
 	@IBAction func focusOnPointOfInterest(sender: UITapGestureRecognizer) {
 		if sender.state == UIGestureRecognizerState.Ended {
-			var point = sender.locationInView(sender.view)
+			let point = sender.locationInView(sender.view)
 			cameraController.lockFocusAtPointOfInterest(point)
 		}
 	}
@@ -172,7 +172,7 @@ class CameraViewController : UIViewController, CameraControllerDelegate, CameraS
 
 		prepareFaceViews(faces.count - faceViews.count)
 
-		for (idx, face) in enumerate(faces) {
+		for (idx, face) in faces.enumerate() {
 			faceViews[idx].frame = face.frame
 		}
 	}
@@ -185,7 +185,7 @@ private extension CameraViewController {
 	func prepareFaceViews(diff:Int) {
 		if diff > 0 {
 			for _ in 0..<diff {
-				var faceView = UIView(frame: CGRectZero)
+				let faceView = UIView(frame: CGRectZero)
 				faceView.backgroundColor = UIColor.clearColor()
 				faceView.layer.borderColor = UIColor.yellowColor().CGColor
 				faceView.layer.borderWidth = 3.0
@@ -230,7 +230,7 @@ private extension CameraViewController {
 			currentValuesTextComponents.append(String(format: "TINT: %.0f", tint))
 		}
 
-		currentValuesLabel.text = join(" - ", currentValuesTextComponents)
+		currentValuesLabel.text = currentValuesTextComponents.joinWithSeparator(" - ")
 	}
 	
 }
